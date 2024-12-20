@@ -1,8 +1,9 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, create_engine
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
+from datetime import datetime
 
 # Set base
 Base = declarative_base()
@@ -44,6 +45,14 @@ class Enrolment(Base):
 
     def __repr__(self):
         return f"{self.id} | {self.enrolled_on} | {self.unenrolled_on} |  ({self.student}) | ({self.course})"
+
+
+def execute_sql(session, query, values = {}):
+    return session.excecute(text(query), values)
+
+
+def time_now():
+    return datetime.now()
 
 # Relationship
 Student.enrolments = relationship("Enrolment", order_by = Enrolment.enrolled_on, back_populates = "student")

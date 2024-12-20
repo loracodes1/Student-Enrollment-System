@@ -1,4 +1,4 @@
-from db.models import Base, db, Session, Course, Student, Enrolment
+from db.models import Base, db, Session, Course, Student, execute_sql, time_now
 from helpers import get_input
 from validator import Validator, validate, rules as R
 
@@ -192,7 +192,24 @@ def delete_course():
     if choice == "N" or (choice != "Y" and choice != "N"):
         return
     
-    # 
+    # Unenrol all students
+    try:
+        t_now = time_now()
+
+        params = {
+            "unenrolled_at": t_now,
+            "course_id": course.id
+        }
+        execute_sql(session, "UPDATE enrolments SET unenrolled_at = :unenrolled_at WHERE course_id = :course_id", params)        
+
+        # Update the course to deleted
+        course.code = f"deleted-{course.code}-{t_now.timestamp()}"
+        course.deleted_at = t_now()
+        
+        session.commit()
+        print("Course deleted successfully")
+    except Exception as e:
+        print("Error deleting course ", e)
 
 # Main entry point to our app
 def main():
