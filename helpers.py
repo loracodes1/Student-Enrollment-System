@@ -3,12 +3,12 @@
 def get_input(prompt, restrict_to_type = None):
     try:
         if restrict_to_type == "int":
-            return int(input(prompt))
+            return int(input(prompt).strip())
         
         if restrict_to_type == "float":
-            return float(input(prompt))
+            return float(input(prompt).strip())
         
-        return input(prompt)
+        return input(prompt).strip()
     
     except:
         return None

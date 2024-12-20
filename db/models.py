@@ -14,6 +14,7 @@ class Student(Base):
     email = Column(String, unique = True)
     first_name = Column(String)
     last_name = Column(String)
+    deleted_at = Column(DateTime, nullable=True)
 
     def __repr__(self):
         return f"{self.id} | {self.email} | {self.first_name} | {self.last_name}"
@@ -25,6 +26,7 @@ class Course(Base):
     id=Column(Integer, primary_key=True)
     code = Column(String, unique=True)
     name = Column(String)
+    deleted_at = Column(DateTime, nullable=True)
 
     def __repr__(self):
         return f"{self.id} | {self.code} | {self.name}"
@@ -48,5 +50,5 @@ Student.enrolments = relationship("Enrolment", order_by = Enrolment.enrolled_on,
 Course.enrolments = relationship("Enrolment", order_by = Enrolment.enrolled_on, back_populates = "course")
 
 # DB related
-db = create_engine('sqlite:///db/system.db', echo=True)
+db = create_engine('sqlite:///db/system.db', echo = True)
 Session = sessionmaker(bind = db)

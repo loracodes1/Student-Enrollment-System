@@ -1,5 +1,6 @@
 from db.models import Base, db, Session, Course, Student, Enrolment
 from helpers import get_input
+from validator import Validator, validate, rules as R
 
 # Migrate DB
 print("Migration started....")
@@ -40,36 +41,158 @@ def list_students():
 
 def add_new_course():
     session = Session()
-    students = session.query(Student).all()
+    
+    code = get_input("Enter course code: ").upper()
+    name = None
 
-    if len(students) == 0:
-        print("No students found")
+    course = session.query(Course).filter_by(code = code).first()
+
+    if course is not None:
+        print(f"Course with the code '{code}' already exists, do you want to update it?")
+        
+        choice = get_input("Y/N: ").upper()
+
+        if choice == "N" or (choice != "Y" and choice != "N"):
+            return
+        
+        name = get_input("Enter course name leave blank to skip: ").capitalize()
+    else:
+        name = get_input("Enter course name: ").capitalize()
+
+    data = {
+        "code": code,
+        "name": name
+    }
+
+    if course is None:
+        rules =  {
+            "code": ["required", "min:1", "max:10"],
+            "name": ["required", "min:1", "max:50"]
+        }
+    else:
+        rules =  {
+            "code": ["required", "min:1", "max:10"],
+        }
+
+        if name != "":
+            rules["name"] = ["required", "min:1", "max:50"]
+
+
+    result, _, errors = validate(data, rules, True)
+
+    #  If failed validation 
+    if not result:
+        print("Error during validation")
+
+        for dict_key in data.keys():
+            if dict_key in errors:
+                print(f"{dict_key}: ", errors[dict_key].values())
+
         return
     
-    print("-" * 100)
-    print("ID | EMAIL | FIRST_NAME | LAST_NAME")
-    print("-" * 50)
-    for student in students:
-        print(student)
+    try:
+        if course is None:
+            # Add
+            course = Course(code = data["code"], name = data["name"])
+            session.add(course)
+        else:
+            # Update
+            if name != "":
+                course.name = data["name"]
+                
 
-    print("-" * 100)
+        session.commit()
+        print("Course added/updated successfully")
+    except Exception as e:
+        print("Error adding/updating course ", e)
 
 def add_new_student():
     session = Session()
-    students = session.query(Student).all()
+    
+    code = get_input("Enter course code: ").upper()
+    name = None
 
-    if len(students) == 0:
-        print("No students found")
+    course = session.query(Course).filter_by(code = code).first()
+
+    if course is not None:
+        print(f"Course with the code '{code}' already exists, do you want to update it?")
+        
+        choice = get_input("Y/N: ").upper()
+
+        if choice == "N" or (choice != "Y" and choice != "N"):
+            return
+        
+        name = get_input("Enter course name leave blank to skip: ").capitalize()
+    else:
+        name = get_input("Enter course name: ").capitalize()
+
+    data = {
+        "code": code,
+        "name": name
+    }
+
+    if course is None:
+        rules =  {
+            "code": ["required", "min:1", "max:10"],
+            "name": ["required", "min:1", "max:50"]
+        }
+    else:
+        rules =  {
+            "code": ["required", "min:1", "max:10"],
+        }
+
+        if name != "":
+            rules["name"] = ["required", "min:1", "max:50"]
+
+
+    result, _, errors = validate(data, rules, True)
+
+    #  If failed validation 
+    if not result:
+        print("Error during validation")
+
+        for dict_key in data.keys():
+            if dict_key in errors:
+                print(f"{dict_key}: ", errors[dict_key].values())
+
         return
     
-    print("-" * 100)
-    print("ID | EMAIL | FIRST_NAME | LAST_NAME")
-    print("-" * 50)
-    for student in students:
-        print(student)
+    try:
+        if course is None:
+            # Add
+            course = Course(code = data["code"], name = data["name"])
+            session.add(course)
+        else:
+            # Update
+            if name != "":
+                course.name = data["name"]
+                
 
-    print("-" * 100)
+        session.commit()
+        print("Course added/updated successfully")
+    except Exception as e:
+        print("Error adding/updating course ", e)
 
+
+def delete_course():
+    session = Session()
+    
+    code = get_input("Enter course code: ").upper()
+    name = None
+
+    course = session.query(Course).filter_by(code = code).first()
+
+    if course is None:
+        print("Course with the code '{code}' not found")
+        return
+    
+    print(f"Are you sure you want to delete course with the code '{code}' all students on this course will be unenrolled")
+    choice = get_input("Y/N: ").upper()
+
+    if choice == "N" or (choice != "Y" and choice != "N"):
+        return
+    
+    # 
 
 # Main entry point to our app
 def main():
@@ -83,12 +206,14 @@ def main():
         print("What do you want to do?")
         print("1. List all courses")
         print("2. List all students")
-        print("3. Add new course")
-        print("4. Add new student")
+        print("3. Add/Update course (use course code as identifier)")
+        print("4. Add/Update student (use student email as identifier)")
         print("5. Enrol student to course")
         print("6. Un-enrol student from course")
         print("7. Print student report")
         print("8. Print course report")
+        print("9. Delete course")
+        print("10. Delete student")
         print("0. Exit")
         print("/" * 50)
         
@@ -115,6 +240,10 @@ def main():
 
         if choice == 4:
             add_new_student()
+            continue
+
+        if choice == 9:
+            delete_course()
             continue
         
         # Enf of prompts
